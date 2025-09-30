@@ -9,11 +9,18 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     build-essential \
+    procps \
+    neovim \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js for MCP server support
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install -y nodejs
 
 # Set up Bun environment
 ENV BUN_INSTALL="/home/.bun"
 ENV PATH="$BUN_INSTALL/bin:$PATH"
+ENV EDITOR="nvim"
 
 # Install coding agents globally
 RUN bun add -g @anthropic-ai/claude-code@latest || echo "Claude CLI install failed"
