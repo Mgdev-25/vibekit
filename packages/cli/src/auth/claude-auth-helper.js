@@ -203,6 +203,27 @@ MERGE_EOF
   }
 
   /**
+   * Extract OAuth account from host .claude.json file
+   * @returns {Object|null} OAuth account object or null
+   */
+  static async extractHostOAuthAccount() {
+    try {
+      const homeDir = os.homedir();
+      const claudeAuthFile = path.join(homeDir, '.claude.json');
+
+      if (await fs.pathExists(claudeAuthFile)) {
+        const hostConfig = await fs.readJson(claudeAuthFile);
+        if (hostConfig.oauthAccount && typeof hostConfig.oauthAccount === 'object') {
+          return hostConfig.oauthAccount;
+        }
+      }
+    } catch (error) {
+      console.log(chalk.yellow(`[auth] ⚠️  Could not extract oauthAccount from host: ${error.message}`));
+    }
+    return null;
+  }
+
+  /**
    * Extract MCP server configurations from host .claude.json file
    * @returns {Object} MCP server configurations or empty object
    */
@@ -252,16 +273,19 @@ MERGE_EOF
   static async generateClaudeSettings(tokenData, projectPath = null) {
     // Use current working directory if no project path provided
     const workingDir = projectPath || process.cwd();
-    
+
     // Extract MCP server configurations from host file and project file
     const hostMcpServers = await this.extractHostMcpServers();
     const projectMcpServers = await this.extractProjectMcpServers(workingDir);
-    
+
     // Merge host and project MCP servers (project takes precedence)
     const mergedMcpServers = { ...hostMcpServers, ...projectMcpServers };
 
     console.log(chalk.green(`[auth] 🔗 Merged ${Object.keys(mergedMcpServers).length} MCP server(s)`));
-    
+
+    // Extract complete oauthAccount from host .claude.json
+    const hostOAuthAccount = await this.extractHostOAuthAccount();
+
     return {
       hasCompletedOnboarding: true, // Skip first-time setup
       numStartups: 2, // Indicate it's been started before
@@ -290,14 +314,14 @@ MERGE_EOF
           hasClaudeMdExternalIncludesWarningShown: false
         }
       },
-      // Add OAuth account info if available
-      ...(tokenData.account && {
+      // Use complete oauthAccount from host if available, otherwise fallback to tokenData
+      ...(hostOAuthAccount ? { oauthAccount: hostOAuthAccount } : tokenData.account && {
         oauthAccount: {
           uuid: tokenData.account.uuid,
           email_address: tokenData.account.email_address
         }
       }),
-      // Add organization info if available  
+      // Add organization info if available
       ...(tokenData.organization && {
         organization: {
           uuid: tokenData.organization.uuid,
