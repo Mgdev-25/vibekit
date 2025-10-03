@@ -56,66 +56,6 @@ Required GitHub token scopes:
 - `write:pull_requests` - Create PRs
 - `read:user` - Read user profile
 
-## Provider Configuration
-
-### Dagger (Local Provider)
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `VIBEKIT_PREFER_REGISTRY_IMAGES` | Use Docker Hub images instead of local builds | `false` |
-| `DOCKER_USERNAME` | Docker Hub username for image uploads | None |
-
-Example:
-```bash
-export VIBEKIT_PREFER_REGISTRY_IMAGES="true"
-export DOCKER_USERNAME="myusername"
-
-### Northflank
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NORTHFLANK_PROJECT_ID` | Default project ID for Northflank | None |
-| `NORTHFLANK_API_TOKEN` | Northflank API token | None |
-
-### Daytona
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DAYTONA_WORKSPACE_ID` | Default workspace ID | None |
-| `DAYTONA_API_TOKEN` | Daytona API token | None |
-
-### E2B
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `E2B_API_KEY` | E2B API key | None |
-| `E2B_TEAM_ID` | E2B team identifier | None |
-
-
-## Default Settings
-
-### Resource Allocation
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `VIBEKIT_DEFAULT_CPU` | Default CPU cores for environments | 2 |
-| `VIBEKIT_DEFAULT_MEMORY` | Default memory in MB | 2048 |
-| `VIBEKIT_DEFAULT_DISK` | Default disk space in GB | 20 |
-
-Example:
-```bash
-export VIBEKIT_DEFAULT_CPU="4"
-export VIBEKIT_DEFAULT_MEMORY="4096"
-export VIBEKIT_DEFAULT_DISK="50"
-
-### Behavior Settings
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `VIBEKIT_DEFAULT_AGENT` | Default AI agent type | None |
-| `VIBEKIT_DEFAULT_TIMEOUT` | Default command timeout in ms | 30000 |
-| `VIBEKIT_AUTO_CLEANUP` | Auto-delete stopped environments | `false` |
-
 ## Development Settings
 
 ### Debug Options
@@ -123,14 +63,10 @@ export VIBEKIT_DEFAULT_DISK="50"
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `VIBEKIT_DEBUG` | Enable debug logging | `false` |
-| `VIBEKIT_LOG_LEVEL` | Log level (error, warn, info, debug) | `info` |
-| `VIBEKIT_LOG_FILE` | Log output file | None (stdout) |
 
 Example:
 ```bash
 export VIBEKIT_DEBUG="true"
-export VIBEKIT_LOG_LEVEL="debug"
-export VIBEKIT_LOG_FILE="/tmp/vibekit.log"
 
 ## Using .env Files
 
@@ -153,14 +89,6 @@ OPENAI_API_KEY=sk-...
 GITHUB_TOKEN=ghp_...
 GITHUB_REPOSITORY=owner/repo
 
-# Provider Settings
-DOCKER_USERNAME=myusername
-NORTHFLANK_PROJECT_ID=proj_123
-
-# Defaults
-VIBEKIT_DEFAULT_AGENT=claude
-VIBEKIT_DEFAULT_MEMORY=4096
-
 # Debug
 VIBEKIT_DEBUG=true
 
@@ -170,28 +98,6 @@ VIBEKIT_DEBUG=true
 2. **Use `.env.example`** - Template without secrets
 3. **Restrict permissions** - `chmod 600 .env`
 4. **Rotate keys regularly** - Update API keys periodically
-
-## Command-Specific Variables
-
-### vibekit init
-
-Additional variables during initialization:
-```bash
-# Skip interactive prompts
-export VIBEKIT_INIT_PROVIDERS="Dagger,E2B"
-export VIBEKIT_INIT_AGENTS="claude,codex"
-export VIBEKIT_INIT_CPU="4"
-export VIBEKIT_INIT_MEMORY="4096"
-
-### vibekit local create
-
-Override defaults for environment creation:
-```bash
-# Set working directory
-export VIBEKIT_WORKING_DIR="/app"
-
-# Set default environment variables
-export VIBEKIT_ENV_VARS="NODE_ENV=development,PORT=3000"
 
 ## Precedence Rules
 
@@ -212,7 +118,7 @@ export ANTHROPIC_API_KEY="old-key"
 ANTHROPIC_API_KEY=new-key
 
 # Command line (highest priority)
-vibekit local create --api-key "newest-key"
+vibekit claude --help
 
 ## Validation
 
@@ -225,9 +131,6 @@ env | grep VIBEKIT
 
 # Specific variable
 echo $ANTHROPIC_API_KEY
-
-# In environment
-vibekit local exec -e my-env -c "env | grep API"
 
 ### Required Variables
 
@@ -266,7 +169,7 @@ ls -l .env
 export VIBEKIT_DEBUG=true
 
 # Run command to see variable loading
-vibekit local create --name test
+vibekit claude "test"
 
 ## Best Practices
 
@@ -285,11 +188,9 @@ GITHUB_REPOSITORY=owner/repo
 Use different files for different environments:
 ```bash
 # .env.development
-VIBEKIT_DEFAULT_AGENT=codex
 VIBEKIT_DEBUG=true
 
 # .env.production
-VIBEKIT_DEFAULT_AGENT=claude
 VIBEKIT_DEBUG=false
 
 ### 3. Security Script

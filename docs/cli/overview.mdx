@@ -35,8 +35,8 @@ vibekit claude "Fix the bug in src/app.js"
 # Run with Docker sandbox (maximum security)
 vibekit claude --sandbox docker "Add user authentication"
 
-# Run Gemini with network access
-vibekit gemini --network "Create a web scraper"
+# Run Gemini
+vibekit gemini "Create a web scraper"
 
 # View logs and analytics
 vibekit logs --agent claude --lines 100
@@ -45,8 +45,8 @@ vibekit analytics --days 7
 # Open analytics dashboard
 vibekit dashboard
 
-# Manage Docker containers
-vibekit docker --status
+# Manage sandbox containers
+vibekit sandbox status
 ```
 
 ## Why Use the CLI?
@@ -83,9 +83,8 @@ The VibeKit CLI provides these main commands:
 - **`vibekit dashboard`** - Start analytics dashboard
 
 ### Utility Commands
-- **`vibekit sync`** - Sync changes from sandbox back to project
-- **`vibekit docker`** - Manage Docker containers
-- **`vibekit clean`** - Clean logs, analytics, and Docker resources
+- **`vibekit sandbox`** - Manage sandbox containers (status, build, clean)
+- **`vibekit clean`** - Clean logs and analytics
 
 ## Next Steps
 

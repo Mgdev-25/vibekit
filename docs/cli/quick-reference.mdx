@@ -27,8 +27,8 @@ vibekit claude "Create a REST API"
 # Run Claude with Docker sandbox (maximum security)
 vibekit claude --sandbox docker "Add authentication"
 
-# Run Gemini with network access
-vibekit gemini --network "Create a web scraper"
+# Run Gemini
+vibekit gemini "Create a web scraper"
 
 # Pass additional arguments to the underlying agent
 vibekit claude --help
@@ -43,12 +43,6 @@ vibekit claude --sandbox none "Fix the bug"
 
 # Docker sandbox (complete isolation)
 vibekit claude --sandbox docker "Run untrusted code"
-
-# Docker with no network access (maximum security)
-vibekit claude --sandbox docker --no-network "Secure development"
-
-# Use fresh container instead of persistent one
-vibekit claude --sandbox docker --fresh-container "Clean environment"
 ```
 
 ### Monitoring & Analytics
@@ -94,10 +88,7 @@ vibekit
 # 2. Run agents in isolated containers
 vibekit claude --sandbox docker "Implement user authentication"
 
-# 3. Sync changes back to your project when ready
-vibekit sync
-
-# 4. Monitor activity in dashboard
+# 3. Monitor activity in dashboard
 vibekit dashboard
 ```
 
@@ -113,8 +104,8 @@ vibekit logs --agent claude --lines 50
 # 3. View analytics to understand patterns
 vibekit analytics --agent claude --days 1
 
-# 4. Check container status if needed
-vibekit docker --status
+# 4. Check sandbox status if needed
+vibekit sandbox status
 ```
 
 ### Team Collaboration
@@ -133,33 +124,20 @@ vibekit analytics --export team-report.json
 vibekit clean
 ```
 
-### Proxy & Security
+### Sandbox Management
 
 ```bash
-# Start proxy server for request logging
-vibekit proxy start --port 8080
+# Check sandbox status
+vibekit sandbox status
 
-# Kill proxy server on specific port
-vibekit proxy kill --port 8080
+# Build sandbox image
+vibekit sandbox build
+
+# Clean sandbox resources
+vibekit sandbox clean
 
 # Run agent through custom proxy
 vibekit claude --proxy http://proxy.example.com:8080 "Generate code"
-```
-
-### Docker Management
-
-```bash
-# Check Docker container status
-vibekit docker --status
-
-# Stop persistent container
-vibekit docker --stop
-
-# Restart persistent container
-vibekit docker --restart
-
-# Sync changes from sandbox to project
-vibekit sync
 ```
 
 ### Maintenance
@@ -170,9 +148,6 @@ vibekit clean
 
 # Clean only logs
 vibekit clean --logs
-
-# Clean only Docker resources
-vibekit clean --docker
 
 # Clean only analytics
 vibekit clean --analytics
@@ -203,8 +178,6 @@ When using interactive commands:
 |------|-------------|---------|
 | `--sandbox <type>` | Sandbox type (none, docker) | `--sandbox docker` |
 | `--proxy <url>` | HTTP proxy URL | `--proxy http://localhost:8080` |
-| `--network` / `--no-network` | Network access control | `--no-network` |
-| `--fresh-container` | Use new Docker container | `--fresh-container` |
 | `-a, --agent <agent>` | Filter by agent | `--agent claude` |
 | `-n, --lines <number>` | Number of lines | `--lines 100` |
 | `--json` | JSON output | `--json` |
