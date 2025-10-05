@@ -37,7 +37,7 @@ RUN curl -sSL https://install.anthropic.com | bash || echo "Alternative Claude i
 ENV PATH="/root/.local/bin:$BUN_INSTALL/bin:$PATH"
 
 # Install ccusage for Claude Code usage tracking
-RUN npm install -g ccusage || echo "ccusage install failed (non-critical)"
+RUN bun add -g ccusage || echo "ccusage install failed (non-critical)"
 
 # Install uv package manager for fetch MCP server
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
