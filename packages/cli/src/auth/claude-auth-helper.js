@@ -224,6 +224,40 @@ MERGE_EOF
   }
 
   /**
+   * Extract user preferences from host .claude.json file (UI settings from /config)
+   * @returns {Promise<Object>} User preferences object
+   */
+  static async extractUserPreferences() {
+    const preferences = {};
+
+    try {
+      const homeDir = os.homedir();
+      const claudeConfigFile = path.join(homeDir, '.claude.json');
+
+      if (await fs.pathExists(claudeConfigFile)) {
+        const hostConfig = await fs.readJson(claudeConfigFile);
+
+        // Extract only UI preferences configured in /config
+        if (hostConfig.editorMode !== undefined) preferences.editorMode = hostConfig.editorMode;
+        if (hostConfig.verbose !== undefined) preferences.verbose = hostConfig.verbose;
+        if (hostConfig.theme !== undefined) preferences.theme = hostConfig.theme;
+        if (hostConfig.notifications !== undefined) preferences.notifications = hostConfig.notifications;
+        if (hostConfig.outputStyle !== undefined) preferences.outputStyle = hostConfig.outputStyle;
+        if (hostConfig.autoCompact !== undefined) preferences.autoCompact = hostConfig.autoCompact;
+        if (hostConfig.useTodoList !== undefined) preferences.useTodoList = hostConfig.useTodoList;
+        if (hostConfig.showTips !== undefined) preferences.showTips = hostConfig.showTips;
+        if (hostConfig.rewindCode !== undefined) preferences.rewindCode = hostConfig.rewindCode;
+
+        console.log(chalk.green(`[auth] ✅ Extracted ${Object.keys(preferences).length} UI preferences from /config`));
+      }
+    } catch (error) {
+      console.log(chalk.yellow(`[auth] ⚠️  Could not extract user preferences: ${error.message}`));
+    }
+
+    return preferences;
+  }
+
+  /**
    * Extract MCP server configurations from host .claude.json file
    * @returns {Object} MCP server configurations or empty object
    */
@@ -286,6 +320,9 @@ MERGE_EOF
     // Extract complete oauthAccount from host .claude.json
     const hostOAuthAccount = await this.extractHostOAuthAccount();
 
+    // Extract user UI preferences from ~/.claude.json (/config settings)
+    const userPreferences = await this.extractUserPreferences();
+
     return {
       hasCompletedOnboarding: true, // Skip first-time setup
       numStartups: 2, // Indicate it's been started before
@@ -298,6 +335,8 @@ MERGE_EOF
       firstStartTime: new Date().toISOString(),
       // Always inject merged MCP server configurations (host + project)
       mcpServers: mergedMcpServers,
+      // Inject UI preferences from /config (editorMode, verbose, theme, etc.)
+      ...userPreferences,
       // Project-level configuration for /workspace
       projects: {
         "/workspace": {
