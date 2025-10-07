@@ -213,6 +213,61 @@ MERGE_EOF
   }
 
   /**
+   * Extract OAuth account from host .claude.json file
+   * @returns {Object|null} OAuth account object or null
+   */
+  static async extractHostOAuthAccount() {
+    try {
+      const homeDir = os.homedir();
+      const claudeAuthFile = path.join(homeDir, '.claude.json');
+
+      if (await fs.pathExists(claudeAuthFile)) {
+        const hostConfig = await fs.readJson(claudeAuthFile);
+        if (hostConfig.oauthAccount && typeof hostConfig.oauthAccount === 'object') {
+          return hostConfig.oauthAccount;
+        }
+      }
+    } catch (error) {
+      console.log(chalk.yellow(`[auth] ⚠️  Could not extract oauthAccount from host: ${error.message}`));
+    }
+    return null;
+  }
+
+  /**
+   * Extract user preferences from host .claude.json file (UI settings from /config)
+   * @returns {Promise<Object>} User preferences object
+   */
+  static async extractUserPreferences() {
+    const preferences = {};
+
+    try {
+      const homeDir = os.homedir();
+      const claudeConfigFile = path.join(homeDir, '.claude.json');
+
+      if (await fs.pathExists(claudeConfigFile)) {
+        const hostConfig = await fs.readJson(claudeConfigFile);
+
+        // Extract only UI preferences configured in /config
+        if (hostConfig.editorMode !== undefined) preferences.editorMode = hostConfig.editorMode;
+        if (hostConfig.verbose !== undefined) preferences.verbose = hostConfig.verbose;
+        if (hostConfig.theme !== undefined) preferences.theme = hostConfig.theme;
+        if (hostConfig.notifications !== undefined) preferences.notifications = hostConfig.notifications;
+        if (hostConfig.outputStyle !== undefined) preferences.outputStyle = hostConfig.outputStyle;
+        if (hostConfig.autoCompact !== undefined) preferences.autoCompact = hostConfig.autoCompact;
+        if (hostConfig.useTodoList !== undefined) preferences.useTodoList = hostConfig.useTodoList;
+        if (hostConfig.showTips !== undefined) preferences.showTips = hostConfig.showTips;
+        if (hostConfig.rewindCode !== undefined) preferences.rewindCode = hostConfig.rewindCode;
+
+        console.log(chalk.green(`[auth] ✅ Extracted ${Object.keys(preferences).length} UI preferences from /config`));
+      }
+    } catch (error) {
+      console.log(chalk.yellow(`[auth] ⚠️  Could not extract user preferences: ${error.message}`));
+    }
+
+    return preferences;
+  }
+
+  /**
    * Generate Claude CLI settings for onboarding bypass
    * @param {Object} tokenData - Raw token data from ClaudeAuth
    * @returns {Promise<Object>} Settings object for Claude CLI
@@ -220,7 +275,13 @@ MERGE_EOF
   static async generateClaudeSettings(tokenData) {
     // Extract MCP server configurations from host file
     const hostMcpServers = await this.extractHostMcpServers();
-    
+
+    // Extract complete oauthAccount from host .claude.json
+    const hostOAuthAccount = await this.extractHostOAuthAccount();
+
+    // Extract user UI preferences from ~/.claude.json (/config settings)
+    const userPreferences = await this.extractUserPreferences();
+
     return {
       hasCompletedOnboarding: true, // Skip first-time setup
       numStartups: 2, // Indicate it's been started before
@@ -233,6 +294,8 @@ MERGE_EOF
       firstStartTime: new Date().toISOString(),
       // Always inject user-scope MCP server configurations from host (even if empty)
       mcpServers: hostMcpServers,
+      // Inject UI preferences from /config (editorMode, verbose, theme, etc.)
+      ...userPreferences,
       // Project-level configuration for /workspace
       projects: {
         "/workspace": {
@@ -249,14 +312,14 @@ MERGE_EOF
           hasClaudeMdExternalIncludesWarningShown: false
         }
       },
-      // Add OAuth account info if available
-      ...(tokenData.account && {
+      // Use complete oauthAccount from host if available, otherwise fallback to tokenData
+      ...(hostOAuthAccount ? { oauthAccount: hostOAuthAccount } : tokenData.account && {
         oauthAccount: {
           uuid: tokenData.account.uuid,
           email_address: tokenData.account.email_address
         }
       }),
-      // Add organization info if available  
+      // Add organization info if available
       ...(tokenData.organization && {
         organization: {
           uuid: tokenData.organization.uuid,

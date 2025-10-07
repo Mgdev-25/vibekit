@@ -242,6 +242,17 @@ export class DockerSandbox {
       containerArgs.push('-v', `${claudeConfigDir}:/root/.config/claude`);
     }
 
+    // Mount conversation history for persistence across host/container
+    const claudeProjectsDir = path.join(homeDir, '.claude', 'projects');
+    const claudeHistoryFile = path.join(homeDir, '.claude', 'history.jsonl');
+
+    if (await fs.pathExists(claudeProjectsDir)) {
+      containerArgs.push('-v', `${claudeProjectsDir}:/root/.claude/projects`);
+    }
+    if (await fs.pathExists(claudeHistoryFile)) {
+      containerArgs.push('-v', `${claudeHistoryFile}:/root/.claude/history.jsonl`);
+    }
+
     // Add security options
     containerArgs.push('--security-opt', 'no-new-privileges');
 
