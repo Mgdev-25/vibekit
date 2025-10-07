@@ -203,6 +203,17 @@ export class DockerSandbox {
     const customFlags = SandboxConfig.getSandboxFlags();
     containerArgs.push(...customFlags);
 
+    // Mark container as sandbox environment (for hooks and scripts)
+    containerArgs.push('-e', 'VIBEKIT_SANDBOX_ACTIVE=1');
+
+    // Pass terminal color support from host to container
+    if (process.env.TERM) {
+      containerArgs.push('-e', `TERM=${process.env.TERM}`);
+    }
+    if (process.env.COLORTERM) {
+      containerArgs.push('-e', `COLORTERM=${process.env.COLORTERM}`);
+    }
+
     // Mount project directory
     containerArgs.push('-v', `${this.projectRoot}:/workspace`);
 
@@ -240,6 +251,16 @@ export class DockerSandbox {
     const claudeConfigDir = path.join(configDir, 'claude');
     if (await fs.pathExists(claudeConfigDir)) {
       containerArgs.push('-v', `${claudeConfigDir}:/root/.config/claude`);
+    }
+
+    // Mount timezone configuration from host
+    const timezonePath = '/etc/timezone';
+    const localtimePath = '/etc/localtime';
+    if (await fs.pathExists(timezonePath)) {
+      containerArgs.push('-v', `${timezonePath}:${timezonePath}:ro`);
+    }
+    if (await fs.pathExists(localtimePath)) {
+      containerArgs.push('-v', `${localtimePath}:${localtimePath}:ro`);
     }
 
     // Add security options
